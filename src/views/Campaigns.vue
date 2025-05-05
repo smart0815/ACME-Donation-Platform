@@ -16,7 +16,6 @@
         </router-link>
       </div>
     </div>
-
     <div class="mt-8 flow-root">
       <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
@@ -73,22 +72,41 @@
         </div>
       </div>
     </div>
+    <DonationModal 
+      :is-open="isDonationModalOpen" 
+      :campaign="selectedCampaign" 
+      @close="closeDonateModal"
+      @donated="handleDonationSuccess"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useCampaignStore } from '@/stores/campaigns';
+import DonationModal from '@/components/DonationModal.vue';
 import type { Campaign } from '@/types';
 
 const campaignStore = useCampaignStore();
+const isDonationModalOpen = ref(false);
+const selectedCampaign = ref<Campaign | null>(null);
 
 onMounted(() => {
   campaignStore.fetchCampaigns();
 });
 
 function showDonateModal(campaign: Campaign) {
-  // TODO: Implement donation modal
-  console.log('Donate to campaign:', campaign.id);
+  selectedCampaign.value = campaign;
+  isDonationModalOpen.value = true;
+}
+
+function closeDonateModal() {
+  isDonationModalOpen.value = false;
+  selectedCampaign.value = null;
+}
+
+function handleDonationSuccess() {
+  // Refresh campaign data after successful donation
+  campaignStore.fetchCampaigns();
 }
 </script>
