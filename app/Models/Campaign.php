@@ -2,40 +2,51 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Campaign extends Model
 {
-    use HasUuids;
+    use HasFactory;
 
     protected $fillable = [
         'title',
         'description',
-        'target_amount',
-        'current_amount',
-        'start_date',
+        'goal_amount',
         'end_date',
-        'creator_id',
+        'image_url',
         'status',
+        'creator_id',
     ];
 
     protected $casts = [
-        'target_amount' => 'decimal:2',
-        'current_amount' => 'decimal:2',
-        'start_date' => 'datetime',
-        'end_date' => 'datetime',
+        'goal_amount' => 'decimal:2',
+        'end_date' => 'date',
     ];
 
-    public function creator(): BelongsTo
+    public function creator()
     {
         return $this->belongsTo(User::class, 'creator_id');
     }
 
-    public function donations(): HasMany
+    public function donations()
     {
         return $this->hasMany(Donation::class);
+    }
+
+    public function getTotalDonationsAttribute()
+    {
+        return $this->donations->sum('amount');
+    }
+
+    public function getProgressPercentageAttribute()
+    {
+        if ($this->goal_amount == 0) return 0;
+        return min(100, ($this->total_donations / $this->goal_amount) * 100);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
     }
 }
